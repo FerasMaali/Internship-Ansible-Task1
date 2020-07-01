@@ -1,0 +1,31 @@
+---
+
+- hosts: all
+  become: true
+
+  tasks:
+    - name: get variables from the input.yml
+      include_vars:
+        file: input.yml
+        name: input
+
+    - name: convert 'input' to a list of dictionaries
+      set_fact:
+        input: |
+          {% set res = [] -%}
+          {% for key in input.keys() -%}
+            {% for value in input[key] -%}
+              {% set ignored = res.extend([{'dest': key, 'file':value}]) -%}
+            {%- endfor %}
+          {%- endfor %}
+          {{ res }}
+
+    - name: copy files to their destinations
+      copy:
+        src: "{{ item.file.file_name }}"
+        dest: "{{ '/'.join( [ item.file.path, item.file.folder, '' ] ) }}"
+        mode: "{{ item.file.mode }}"
+        owner: "{{ item.file.owner }}"
+        group: "{{ item.file.group }}"
+      when: "{{ item.file.when }}"
+      loop: "{{ input }}"
