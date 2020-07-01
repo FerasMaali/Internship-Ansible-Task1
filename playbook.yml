@@ -29,3 +29,8 @@
         group: "{{ item.file.group }}"
       when: "{{ item.file.when }}"
       loop: "{{ input }}"
+      # You can comment the following two lines to perform copy operation
+      # As it is a diff operation now
+      check_mode: yes
+      diff: yes
+
