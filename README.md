@@ -2,10 +2,14 @@
 
 ## For copying file:
 ```
-ansible-playbook playbook.yml -i hosts
+ansible-playbook copy_playbook.yml -i hosts
 ```
 
 ## For doing diff:
 ```
-ansible-playbook playbook.yml -i hosts --check --diff
+ansible-playbook diff_playbook.yml -i hosts
 ```
+
+## ToDo
+- [ ] Handle paths ending with "/" (or somehow use os.path.join)
+- [ ] Not all hosts

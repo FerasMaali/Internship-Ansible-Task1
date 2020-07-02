@@ -1,0 +1,41 @@
+---
+
+- hosts: thisone
+  become: true
+
+  # vars_prompt:
+  #   - name: run1
+  #     prompt: "Enter first run directory"
+  #     private: no
+
+  #   - name: run2
+  #     prompt: "Enter second run directory"
+  #     private: no
+
+  vars:
+    run1: /backup1
+    run2: /backup2
+
+  tasks:
+    - name: Get a list of all files in the two given directories
+      find:
+        paths: "{{ run1 }},{{ run2 }}"
+        recurse: yes
+      register: files_list
+
+    - name: Keep only the common part of the paths and remove duplicates after that
+      set_fact:
+        files_list: |
+          {% set res = [] -%}
+          {% for file in files_list.files -%}
+              {% set ignored = res.extend([ file.path.split('/', 2)[-1] ]) -%}
+          {%- endfor %}
+          {{ res | unique }}
+
+    - name: Diff the files' contents
+      shell: "diff {{ '/'.join( [ run1, item ] ) }} {{ '/'.join( [ run2, item ] ) }}; true"
+      loop: "{{ files_list }}"
+
+    - name: Diff the files' contents
+      shell: "diff <( stat -c '%a %U %G %C' {{ '/'.join( [ run1, item ] ) }} ) <( stat -c '%a %U %G %C' {{ '/'.join( [ run2, item ] ) }} ); true"
+      loop: "{{ files_list }}"
