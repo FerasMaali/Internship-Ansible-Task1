@@ -2,10 +2,13 @@
 
 ## For copying file:
 ```
-ansible-playbook copy_playbook.yml -i hosts
+ansible-playbook -i hosts --extra-vars "destination_dir=/absolute/path/to/destination/directory" copy_playbook.yml
 ```
 
 ## For doing diff:
 ```
-ansible-playbook diff_playbook.yml -i hosts
+ansible-playbook -i hosts --extra-vars "first_run=/first/run/destination second_run=/second/run/destination" diff_playbook.yml
 ```
+
+## Note
+The given paths must always be absolute paths

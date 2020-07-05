@@ -1,0 +1,11 @@
+---
+
+- hosts: localhost
+  become: yes
+
+  tasks:
+     - set_fact:
+         r: "{{ 10000000000 | random }}"
+
+     - debug:
+         var: r

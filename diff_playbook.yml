@@ -3,31 +3,22 @@
 - hosts: localhost
   become: true
 
-  vars_prompt:
-    - name: run1
-      prompt: "Enter first run directory (absolute path)"
-      private: no
-
-    - name: run2
-      prompt: "Enter second run directory (absolute path)"
-      private: no
-
   vars:
     result_content: []
     result_attributes: []
 
   tasks:
-    - name: Remove '/' from the end of run1 (if exists)
+    - name: Remove '/' from the end of first_run (if exists)
       set_fact:
-        run1: "{{ run1 if run1[-1] != '/' else run1[:-1] }}"
+        first_run: "{{ first_run if first_run[-1] != '/' else first_run[:-1] }}"
 
-    - name: Remove '/' from the end of run2 (if exists)
+    - name: Remove '/' from the end of second_run (if exists)
       set_fact:
-        run2: "{{ run2 if run2[-1] != '/' else run2[:-1] }}"
+        second_run: "{{ second_run if second_run[-1] != '/' else second_run[:-1] }}"
 
     - name: Get a list of all files in the two given directories
       find:
-        paths: "{{ run1 }},{{ run2 }}"
+        paths: "{{ first_run }},{{ second_run }}"
         recurse: yes
       register: files_list
 
@@ -36,12 +27,12 @@
         files_list: |
           {% set res = [] -%}
           {% for file in files_list.files -%}
-              {% set ignored = res.extend([ file.path[run1|length+1:] if file.path.startswith(run1) else file.path[run2|length+1:] ]) -%}
+              {% set ignored = res.extend([ file.path[first_run|length+1:] if file.path.startswith(first_run) else file.path[second_run|length+1:] ]) -%}
           {%- endfor %}
           {{ res | unique }}
 
     - name: Diff the files' attributes
-      shell: "diff <( stat -c '%a %U %G %C' {{ '/'.join( [ run1, item ] ) }} ) <( stat -c '%a %U %G %C' {{ '/'.join( [ run2, item ] ) }} ); true"
+      shell: "diff <( stat -c '%a %U %G %C' {{ '/'.join( [ first_run, item ] ) }} ) <( stat -c '%a %U %G %C' {{ '/'.join( [ second_run, item ] ) }} ); true"
       args:
         executable: /bin/bash
       loop: "{{ files_list }}"
@@ -53,7 +44,7 @@
       loop: "{{ output.results }}"
 
     - name: Diff the files' contents
-      shell: "diff {{ '/'.join( [ run1, item ] ) }} {{ '/'.join( [ run2, item ] ) }}; true"
+      shell: "diff {{ '/'.join( [ first_run, item ] ) }} {{ '/'.join( [ second_run, item ] ) }}; true"
       loop: "{{ files_list }}"
       register: output
 

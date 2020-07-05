@@ -3,13 +3,15 @@
 - hosts: all
   become: true
 
-  vars_prompt:
-    - name: destination_dir
-      prompt: "Enter destination directory"
-      private: no
+  vars:
+    suffix: _backup
 
   tasks:
-    - name: get variables from the input.yml
+    - name: Remove '/' from the end of first_run (if exists)
+      set_fact:
+        first_run: "{{ destination_dir if destination_dir[-1] != '/' else destination_dir[:-1] }}"
+
+    - name: get input data from the input.yml and store it in 'input'
       include_vars:
         file: input.yml
         name: input
@@ -26,14 +28,14 @@
           {{ res }}
 
     - name: Compress files before copying
-      shell: "cd {{ '/'.join([item.file.path, item.file.folder]) }} && tar --selinux -cf {{ item.file.file_name }}.tar {{ item.file.file_name }}"
+      shell: "cd {{ '/'.join([item.file.path, item.file.folder]) }} && tar --selinux -cf {{ item.file.file_name }}{{ suffix }}.tar {{ item.file.file_name }}"
       when: "{{ item.file.when }}"
       loop: "{{ input }}"
 
     - name: copy compressed files to their destinations
       fetch:
-        src: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name  ]  ) }}.tar"
-        dest: "{{ '/'.join( [ destination_dir, item.dest, ''  ]  ) }}"
+        src: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name + suffix ] ) }}.tar"
+        dest: "{{ '/'.join( [ destination_dir, item.dest, '' ] ) }}"
         mode: "{{ item.file.mode }}"
         owner: "{{ item.file.owner }}"
         group: "{{ item.file.group }}"
@@ -50,19 +52,18 @@
     - name: Extract compressed files
       local_action: "shell tar --selinux -xf {{ item.path }} -C {{ item.path[::-1].split('/', 1)[-1][::-1] + '/' }}"
       loop: "{{ files_list.files }}"
-      when: "{{ item.path.endswith('.tar') }}"
+      when: "{{ item.path.endswith(suffix + '.tar') }}"
 
     - name: remove compressed files on the local machine
       local_action:
-          module: file
-          path: "{{ item.path }}"
-          state: absent
+        module: file
+        path: "{{ item.path }}"
+        state: absent
       loop: "{{ files_list.files }}"
-      when: "{{ item.path.endswith('.tar') }}"
+      when: "{{ item.path.endswith(suffix + '.tar') }}"
 
     - name: remove compressed files on the remote machines
       file:
-        path: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name  ]  ) }}.tar"
+        path: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name + suffix ] ) }}.tar"
         state: absent
       loop: "{{ input }}"
-      
