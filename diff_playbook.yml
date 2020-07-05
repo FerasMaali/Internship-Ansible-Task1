@@ -1,22 +1,30 @@
 ---
 
-- hosts: thisone
+- hosts: localhost
   become: true
 
-  # vars_prompt:
-  #   - name: run1
-  #     prompt: "Enter first run directory"
-  #     private: no
+  vars_prompt:
+    - name: run1
+      prompt: "Enter first run directory (absolute path)"
+      private: no
 
-  #   - name: run2
-  #     prompt: "Enter second run directory"
-  #     private: no
+    - name: run2
+      prompt: "Enter second run directory (absolute path)"
+      private: no
 
   vars:
-    run1: /backup1
-    run2: /backup2
+    result_content: []
+    result_attributes: []
 
   tasks:
+    - name: Remove '/' from the end of run1 (if exists)
+      set_fact:
+        run1: "{{ run1 if run1[-1] != '/' else run1[:-1] }}"
+
+    - name: Remove '/' from the end of run2 (if exists)
+      set_fact:
+        run2: "{{ run2 if run2[-1] != '/' else run2[:-1] }}"
+
     - name: Get a list of all files in the two given directories
       find:
         paths: "{{ run1 }},{{ run2 }}"
@@ -28,14 +36,35 @@
         files_list: |
           {% set res = [] -%}
           {% for file in files_list.files -%}
-              {% set ignored = res.extend([ file.path.split('/', 2)[-1] ]) -%}
+              {% set ignored = res.extend([ file.path[run1|length+1:] if file.path.startswith(run1) else file.path[run2|length+1:] ]) -%}
           {%- endfor %}
           {{ res | unique }}
+
+    - name: Diff the files' attributes
+      shell: "diff <( stat -c '%a %U %G %C' {{ '/'.join( [ run1, item ] ) }} ) <( stat -c '%a %U %G %C' {{ '/'.join( [ run2, item ] ) }} ); true"
+      args:
+        executable: /bin/bash
+      loop: "{{ files_list }}"
+      register: output
+
+    - name: Find attributes difference for each file and store them in result_attributes
+      set_fact:
+        result_attributes: "{{ result_attributes + [{item.item: item.stdout}] }}"
+      loop: "{{ output.results }}"
 
     - name: Diff the files' contents
       shell: "diff {{ '/'.join( [ run1, item ] ) }} {{ '/'.join( [ run2, item ] ) }}; true"
       loop: "{{ files_list }}"
+      register: output
 
-    - name: Diff the files' contents
-      shell: "diff <( stat -c '%a %U %G %C' {{ '/'.join( [ run1, item ] ) }} ) <( stat -c '%a %U %G %C' {{ '/'.join( [ run2, item ] ) }} ); true"
-      loop: "{{ files_list }}"
+    - name: Find content difference for each file and store them in result_content
+      set_fact:
+        result_content: "{{ result_content + [{item.item: item.stdout}] }}"
+      loop: "{{ output.results }}"
+
+    - debug:
+        var: result_attributes
+
+    - debug:
+        var: result_content
+

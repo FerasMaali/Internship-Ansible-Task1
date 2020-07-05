@@ -1,7 +1,0 @@
--rw-r--r-- unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678294 /backup1/undercloud_files/192.168.229.132/home/stack/templates/firstboot/cbis/general_utils/files/shared_common.sh
--rw-r--r-- unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678295 /backup1/undercloud_files/192.168.229.132/usr/share/cbis/undercloud/templates/generic/firstboot/cbis/general_utils/files/shared_common.sh
--rw-r--r-- unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678295 /backup1/undercloud_files/192.168.229.132/usr/share/cbis/utils/shared_common.sh
---wx-wx-wx unconfined_u:object_r:default_t:s0 regular file 0 0 13 1593688645 /backup1/hypervisor_files/192.168.229.133/root/cbis-installer/templates/generic/firstboot/cbis/general_utils/files/shared_common.sh
--rw-r--r-- unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678294 /backup1/overcloud_files/192.168.229.135/usr/share/cbis/undercloud/templates/generic/firstboot/cbis/general_utils/files/shared_common.sh
--rw-r--r-- unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678295 /backup1/overcloud_files/192.168.229.135/usr/share/cbis/utils/shared_common.sh
----x--x--x unconfined_u:object_r:default_t:s0 regular file 0 0 8 1593678295 /backup1/overcloud_files/192.168.229.135/usr/share/cbis/utils/files/shared_common.sh

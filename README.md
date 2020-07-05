@@ -9,7 +9,3 @@ ansible-playbook copy_playbook.yml -i hosts
 ```
 ansible-playbook diff_playbook.yml -i hosts
 ```
-
-## ToDo
-- [ ] Handle paths ending with "/" (or somehow use os.path.join)
-- [ ] Not all hosts
