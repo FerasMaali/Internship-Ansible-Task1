@@ -3,10 +3,16 @@
 - hosts: all
   become: true
 
-  vars:
-    suffix: _backup
-
   tasks:
+    - name: if 'suffix' is not given using --extra-var, then use a default value for it
+      set_fact:
+        suffix: _backup
+      when: suffix is not defined
+
+    - fail:
+        msg: "'destination_dir' is not defined"
+      when: destination_dir is not defined
+
     - name: Remove '/' from the end of first_run (if exists)
       set_fact:
         first_run: "{{ destination_dir if destination_dir[-1] != '/' else destination_dir[:-1] }}"

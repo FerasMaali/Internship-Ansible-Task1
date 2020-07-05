@@ -8,6 +8,10 @@
     result_attributes: []
 
   tasks:
+    - fail:
+        msg: "'first_run' and 'socond_run' must both be defined"
+      when: first_run is not defined or second_run is not defined
+
     - name: Remove '/' from the end of first_run (if exists)
       set_fact:
         first_run: "{{ first_run if first_run[-1] != '/' else first_run[:-1] }}"
