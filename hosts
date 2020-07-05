@@ -1,9 +1,9 @@
 
 [hypervisor]
-192.168.229.133
+server2
 
 [undercloud]
-192.168.229.132
+server3
 
 [overcloud]
-192.168.229.135
+server4

@@ -25,14 +25,44 @@
           {%- endfor %}
           {{ res }}
 
-    - name: copy files to their destinations
+    - name: Compress files before copying
+      shell: "cd {{ '/'.join([item.file.path, item.file.folder]) }} && tar --selinux -cf {{ item.file.file_name }}.tar {{ item.file.file_name }}"
+      when: "{{ item.file.when }}"
+      loop: "{{ input }}"
+
+    - name: copy compressed files to their destinations
       fetch:
-        src: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name ] ) }}"
-        dest: "{{ '/'.join( [ destination_dir, item.dest, '' ] ) }}"
+        src: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name  ]  ) }}.tar"
+        dest: "{{ '/'.join( [ destination_dir, item.dest, ''  ]  ) }}"
         mode: "{{ item.file.mode }}"
         owner: "{{ item.file.owner }}"
         group: "{{ item.file.group }}"
       when: "{{ item.file.when }}"
       loop: "{{ input }}"
 
+    - name: Get a list of all files in the destination dir (the compressed files)
+      local_action:
+        module: find
+        paths: "{{ destination_dir }}"
+        recurse: yes
+      register: files_list
 
+    - name: Extract compressed files
+      local_action: "shell tar --selinux -xf {{ item.path }} -C {{ item.path[::-1].split('/', 1)[-1][::-1] + '/' }}"
+      loop: "{{ files_list.files }}"
+      when: "{{ item.path.endswith('.tar') }}"
+
+    - name: remove compressed files on the local machine
+      local_action:
+          module: file
+          path: "{{ item.path }}"
+          state: absent
+      loop: "{{ files_list.files }}"
+      when: "{{ item.path.endswith('.tar') }}"
+
+    - name: remove compressed files on the remote machines
+      file:
+        path: "{{ '/'.join( [ item.file.path, item.file.folder, item.file.file_name  ]  ) }}.tar"
+        state: absent
+      loop: "{{ input }}"
+      
