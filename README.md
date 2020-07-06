@@ -5,8 +5,8 @@
 ansible-playbook \
         -i hosts \
         --extra-vars "destination_dir=/absolute/path/to/destination/directory \
-        [suffix=_some_suffix]" \
         [input_file=path/to/input/file] \
+        [suffix=_some_suffix]" \
         copy_playbook.yml
 ```
 
