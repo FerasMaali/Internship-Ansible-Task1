@@ -3,7 +3,7 @@
 server2
 
 [undercloud]
-server3
+server4
 
 [overcloud]
-server4
+server3

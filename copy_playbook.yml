@@ -4,10 +4,15 @@
   become: true
 
   tasks:
-    - name: if 'suffix' is not given using --extra-var, then use a default value for it
+    - name: if 'suffix' is not given using --extra-var, then use the default value for it
       set_fact:
         suffix: _backup
       when: suffix is not defined
+
+    - name: if 'input_file' is not given using --extra-var, then use the default value for it
+      set_fact:
+        input_file: input.yml
+      when: input_file is not defined
 
     - fail:
         msg: "'destination_dir' is not defined"
@@ -19,7 +24,7 @@
 
     - name: get input data from the input.yml and store it in 'input'
       include_vars:
-        file: input.yml
+        file: "{{ input_file }}"
         name: input
 
     - name: convert 'input' to a list of dictionaries
